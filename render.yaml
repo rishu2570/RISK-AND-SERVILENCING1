@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ai-risk-surveillance
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfile: ./Dockerfile
+    buildCommand: ""
+    startCommand: "python app.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: /
+    healthCheckInterval: 30
+    healthCheckTimeout: 5
+    maxShutdownDelay: 30
