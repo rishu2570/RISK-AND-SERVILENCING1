@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Risk & Surveillance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1>AI Risk & Surveillance System</h1>
+  <p>YOLO + OpenCV + Flask + SQLite</p>
+</header>
+
+<main>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <section class="controls">
+    <form action="/video_feed" method="get" target="feed" onsubmit="event.preventDefault(); document.querySelector('iframe[name=\'feed\']').src = '/video_feed?source=camera'; return false;">
+      <input type="hidden" name="source" value="camera">
+      <button class="btn" type="submit">Start Camera</button>
+    </form>
+    <form action="/video_feed" method="get" target="feed" onsubmit="event.preventDefault(); document.querySelector('iframe[name=\'feed\']').src = '/video_feed?source=video'; return false;">
+      <input type="hidden" name="source" value="video">
+      <button class="btn" type="submit">Uploaded Video</button>
+    </form>
+    <form action="/stop_camera" method="post" onsubmit="event.preventDefault(); fetch('/stop_camera', {method: 'POST'}); document.querySelector('iframe[name=\'feed\']').src = 'about:blank'; return false;">
+      <button class="btn secondary" type="submit">Stop Camera</button>
+    </form>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="video" accept="video/*" required>
+      <button class="btn" type="submit">Upload Video</button>
+    </form>
+    <form action="/clear" method="post">
+      <button class="btn danger" type="submit">Clear Events</button>
+    </form>
+  </section>
+
+  <section class="grid">
+    <div class="card camera">
+      <h2>Live Detection</h2>
+      <iframe name="feed" src="about:blank"></iframe>
+      <p class="note">Red box = demo restricted zone. Red person box means the detected person is inside it.</p>
+    </div>
+
+    <div class="card">
+      <h2>Risk Logic</h2>
+      <div class="legend"><b>LOW</b> — normal activity</div>
+      <div class="legend"><b>MEDIUM</b> — crowd condition</div>
+      <div class="legend"><b>HIGH</b> — restricted entry and/or large crowd</div>
+      <h3>How it works</h3>
+      <ol>
+        <li>YOLO detects objects.</li>
+        <li>People are counted.</li>
+        <li>The system checks the restricted zone.</li>
+        <li>A rule-based risk engine calculates 0–100.</li>
+        <li>Important events are stored in SQLite.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Recent Risk Events</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Time</th><th>Event</th><th>Score</th><th>Level</th></tr></thead>
+      <tbody>
+      {% for e in events %}
+        <tr>
+          <td>{{ e[0] }}</td><td>{{ e[1] }}</td><td>{{ e[2] }}</td>
+          <td>{{ e[3] }}/100</td><td class="{{ e[4]|lower }}">{{ e[4] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5">No events yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>
